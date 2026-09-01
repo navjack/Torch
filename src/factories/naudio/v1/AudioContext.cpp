@@ -2,6 +2,7 @@
 #include "spdlog/spdlog.h"
 #include "Companion.h"
 #include "utils/StringHelper.h"
+#include "lib/binarytools/MemoryStream.h"
 
 std::unordered_map<AudioTableType, TableEntry> AudioContext::tables;
 NAudioDrivers AudioContext::driver = NAudioDrivers::UNKNOWN;
@@ -45,9 +46,9 @@ std::optional<std::shared_ptr<IParsedData>> AudioContextFactory::parse(std::vect
 }
 
 LUS::BinaryReader AudioContext::MakeReader(AudioTableType type, uint32_t offset) {
-    auto entry = AudioContext::tables[type].buffer;
+    auto& entry = AudioContext::tables[type].buffer;
 
-    LUS::BinaryReader reader(entry.data(), entry.size());
+    LUS::BinaryReader reader(std::make_shared<LUS::MemoryStream>((const char*) entry.data(), entry.size(), false));
     reader.SetEndianness(Torch::Endianness::Big);
     reader.Seek(offset, LUS::SeekOffsetType::Start);
 

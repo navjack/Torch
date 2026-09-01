@@ -37,7 +37,7 @@ ExportResult NSampleBinaryExporter::Export(std::ostream &write, std::shared_ptr<
     writer.Write(AudioContext::GetPathByAddr(data->loop));
     writer.Write(AudioContext::GetPathByAddr(data->book));
 
-    auto table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
+    auto& table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
     writer.Write((char*) table.buffer.data() + table.info->entries[data->sampleBankId].addr + data->sampleAddr, data->size);
 
     writer.Finish(write);
@@ -51,7 +51,7 @@ ExportResult NSampleModdingExporter::Export(std::ostream &write, std::shared_ptr
 #ifdef SF64_SUPPORT
     if(AudioContext::driver == NAudioDrivers::SF64 && data->codec == 2) {
         *replacement += ".pcm";
-        auto table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
+        auto& table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
         auto ptr = table.buffer.data() + table.info->entries[data->sampleBankId].addr + data->sampleAddr;
         auto vec = std::vector<uint8_t>(ptr, ptr + data->size);
         auto output = new int16_t[data->size * 2];
@@ -128,7 +128,7 @@ ExportResult NSampleXMLExporter::Export(std::ostream &write, std::shared_ptr<IPa
     sample.Accept(&printer);
     write.write(printer.CStr(), printer.CStrSize() - 1);
 
-    auto table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
+    auto& table = AudioContext::tables[AudioTableType::SAMPLE_TABLE];
     auto sampleData = table.buffer.data() + table.info->entries[entry->sampleBankId].addr + entry->sampleAddr;
     std::vector<char> data(sampleData, sampleData + entry->size);
     Companion::Instance->RegisterCompanionFile(path.filename().string() + "_data", data);

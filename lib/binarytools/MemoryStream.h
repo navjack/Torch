@@ -9,6 +9,7 @@ class MemoryStream : public Stream {
   public:
     MemoryStream();
     MemoryStream(char* nBuffer, size_t nBufferSize);
+    MemoryStream(const char* nBuffer, size_t nBufferSize, bool copy);
     ~MemoryStream();
 
     uint64_t GetLength() override;
@@ -28,7 +29,10 @@ class MemoryStream : public Stream {
     void Close() override;
 
   protected:
+    const char* ReadBuffer() const;
+
     std::vector<char> mBuffer;
+    const char* mExternalBuffer;
     std::size_t mBufferSize;
 };
 } // namespace LUS
