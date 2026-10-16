@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.24)
 project(torch)
 include(FetchContent)
 
@@ -8,6 +8,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
+
+# The UI's vcpkg triplet and every consumer must use the same MSVC CRT.
+# Set this before any FetchContent target is created.
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 # Set build options
 option(USE_STANDALONE "Build as a standalone executable" ON)
@@ -70,6 +76,34 @@ if(USE_STANDALONE)
     endif()
 endif()
 
+# Resolve shared dependencies before libultraship calls find_package for them.
+# Standalone builds own their pinned spdlog; embedded builds can use the host's.
+if(USE_STANDALONE AND EMSCRIPTEN)
+    set(CMAKE_CXX_FLAGS_DEBUG "-O3")
+    set(SPDLOG_USE_STD_FORMAT ON)
+endif()
+if(NOT USE_STANDALONE)
+    find_package(spdlog QUIET)
+endif()
+if(USE_STANDALONE OR NOT spdlog_FOUND)
+    FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG 79524ddd08a4ec981b7fea76afd08ee05f83755d
+        OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_MakeAvailable(spdlog)
+endif()
+
+set(tinyxml2_BUILD_TESTING OFF)
+FetchContent_Declare(
+    tinyxml2
+    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+    GIT_TAG 10.0.0
+    OVERRIDE_FIND_PACKAGE
+)
+FetchContent_MakeAvailable(tinyxml2)
+
 # Interactive viewer renderer: libultraship + Fast3D (true N64 rendering). LUS
 # bundles its own ImGui, so it fully replaces the old raylib/rlImGui backend.
 if(BUILD_UI)
@@ -79,16 +113,6 @@ if(BUILD_UI)
     set(EXCLUDE_MPQ_SUPPORT TRUE CACHE BOOL "")
     add_compile_definitions(EXCLUDE_MPQ_SUPPORT)
     set(ENABLE_SCRIPTING OFF CACHE BOOL "" FORCE)
-
-    # tinyxml2 must resolve before LUS's find_package(tinyxml2 REQUIRED).
-    set(tinyxml2_BUILD_TESTING OFF)
-    FetchContent_Declare(
-        tinyxml2
-        GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-        GIT_TAG 10.0.0
-        OVERRIDE_FIND_PACKAGE
-    )
-    FetchContent_MakeAvailable(tinyxml2)
 
     FetchContent_Declare(
         dr_libs
@@ -194,19 +218,12 @@ if(ENABLE_ASAN)
     add_link_options(-fsanitize=address)
 endif()
 
-# MSVC static runtime for all targets (must be set before add_subdirectory/FetchContent)
-if (MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
-
 # Build
 if (USE_STANDALONE)
     add_definitions(-DSTANDALONE)
     add_executable(${PROJECT_NAME} ${SRC_DIR})
-	set(LINK_TYPE "MD")
 else()
     add_library(${PROJECT_NAME} STATIC ${SRC_DIR})
-	set(LINK_TYPE "MT")
 endif()
 
 if (BUILD_STORMLIB)
@@ -223,13 +240,11 @@ else()
             /w;
             /Od;
             $<IF:$<BOOL:${ENABLE_ASAN}>,/Zi,/ZI>;
-            /${LINK_TYPE}d
         >
         $<$<CONFIG:Release>:
             /O3;
             /Gy;
             /W3;
-            /${LINK_TYPE}
         >
         /permissive-;
         /MP;
@@ -321,19 +336,7 @@ if(NOT USE_STANDALONE)
 endif()
 
 if(USE_STANDALONE)
-    if(EMSCRIPTEN)
-        set(CMAKE_CXX_FLAGS_DEBUG "-O3")
-        set(SPDLOG_USE_STD_FORMAT ON)
-    endif()
-
-	FetchContent_Declare(
-		spdlog
-		GIT_REPOSITORY https://github.com/gabime/spdlog.git
-		GIT_TAG 79524ddd08a4ec981b7fea76afd08ee05f83755d
-	)
-
-	FetchContent_MakeAvailable(spdlog)
-	target_link_libraries(${PROJECT_NAME} PRIVATE spdlog)
+	target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 
 	if (MSVC)
 		FetchContent_Declare(
@@ -353,28 +356,8 @@ if(USE_STANDALONE)
 		target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
 	endif()
 else()
-	find_package(spdlog QUIET)
-    if(NOT spdlog_FOUND)
-        FetchContent_Declare(
-            spdlog
-            GIT_REPOSITORY https://github.com/gabime/spdlog.git
-            GIT_TAG 79524ddd08a4ec981b7fea76afd08ee05f83755d
-        )
-
-        FetchContent_MakeAvailable(spdlog)
-    endif()
 	target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 endif()
-
-# Link TinyXML2
-set(tinyxml2_BUILD_TESTING OFF)
-FetchContent_Declare(
-    tinyxml2
-    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-    GIT_TAG 10.0.0
-    OVERRIDE_FIND_PACKAGE
-)
-FetchContent_MakeAvailable(tinyxml2)
 
 # Link zlib
 set(ZLIB_BUILD_SHARED_LIBS OFF CACHE BOOL "Build zlib as a static library" FORCE)
