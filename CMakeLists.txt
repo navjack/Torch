@@ -113,13 +113,13 @@ if(BUILD_UI)
     )
     FetchContent_MakeAvailable(dr_libs)
 
-    # Kenix3 upstream for now. NOTE: the HM64 ports build against a fork
-    # (KiritoDv/better-mipmaps @ 5959b97) with fixes not on upstream; re-pin here
-    # if upstream proves incompatible.
+    # This backend uses libultraship's pre-component-system Context API.
+    # Pin its last compatible upstream revision; following main crosses the
+    # breaking component-system change in 9bb5443 and stops building this viewer.
     FetchContent_Declare(
         libultraship
         GIT_REPOSITORY https://github.com/Kenix3/libultraship.git
-        GIT_TAG main
+        GIT_TAG a3f1e102e1ed50a3f536fbca2e6e412170e7320b
     )
     FetchContent_MakeAvailable(libultraship)
 

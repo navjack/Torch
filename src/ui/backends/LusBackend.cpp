@@ -9,7 +9,7 @@
 #include "ui/Theme.h"
 #include "ui/View.h"
 
-#include <ship/core/Context.h>
+#include <ship/Context.h>
 #include <ship/window/gui/GuiWindow.h>
 #include <ship/controller/controldeck/ControlDeck.h>
 #include <ship/controller/controldevice/controller/mapping/ControllerDefaultMappings.h>
