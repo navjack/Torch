@@ -75,6 +75,22 @@ endif()
 if(BUILD_UI)
     add_definitions(-DBUILD_UI)
 
+    # libultraship requires SDL3. Ubuntu's hosted runner does not ship an
+    # SDL3 development package, so provide the same pinned source fallback
+    # used by libultraship's mobile dependency setup.
+    find_package(SDL3 QUIET)
+    if(NOT SDL3_FOUND)
+        set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+        set(SDL_STATIC ON CACHE BOOL "" FORCE)
+        FetchContent_Declare(
+            SDL3
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+            GIT_TAG release-3.4.12
+            OVERRIDE_FIND_PACKAGE
+        )
+        FetchContent_MakeAvailable(SDL3)
+    endif()
+
     # libultraship integration. Recipe mirrors the Ghostship port.
     set(EXCLUDE_MPQ_SUPPORT TRUE CACHE BOOL "")
     add_compile_definitions(EXCLUDE_MPQ_SUPPORT)
