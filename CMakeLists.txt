@@ -109,6 +109,24 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyxml2)
 
+# Use one zlib provider throughout Torch and its dependencies. An embedding
+# project may already own the standard imported target.
+if(NOT TARGET ZLIB::ZLIB)
+    set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "Build zlib examples" FORCE)
+    set(SKIP_INSTALL_ALL ON CACHE BOOL "Skip zlib install targets" FORCE)
+    FetchContent_Declare(
+        zlib
+        GIT_REPOSITORY https://github.com/madler/zlib.git
+        GIT_TAG v1.3.1
+        OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_MakeAvailable(zlib)
+    # zlib 1.3.1 always defines both variants. Torch consumes the static
+    # library, so leave the unused DLL out of the default build.
+    set_target_properties(zlib PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    add_library(ZLIB::ZLIB ALIAS zlibstatic)
+endif()
+
 # Interactive viewer renderer: libultraship + Fast3D (true N64 rendering). LUS
 # bundles its own ImGui, so it fully replaces the old raylib/rlImGui backend.
 if(BUILD_UI)
@@ -343,41 +361,11 @@ endif()
 if(USE_STANDALONE)
 	target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 
-	if (MSVC)
-		FetchContent_Declare(
-			zlib
-			GIT_REPOSITORY "https://github.com/madler/zlib.git"
-			GIT_TAG v1.3.1
-			FIND_PACKAGE_ARGS NAMES ZLIB
-		)
-		FetchContent_MakeAvailable(zlib)
-		set(ZLIB_INCLUDE_DIRS ${zlib_SOURCE_DIR})
-		set(ZLIB_LIBRARY zlibstatic CACHE STRING "")
-		set(ZLIB_LIBRARIES ${ZLIB_LIBRARY})
-		set(ZLIB_FOUND 1)
-		add_library(ZLIB::ZLIB ALIAS zlibstatic)
-	else ()
-		find_package(ZLIB REQUIRED)
-		target_link_libraries(${PROJECT_NAME} PRIVATE ZLIB::ZLIB)
-	endif()
 else()
 	target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 endif()
 
-# Link zlib
-set(ZLIB_BUILD_SHARED_LIBS OFF CACHE BOOL "Build zlib as a static library" FORCE)
-set(ZLIB_BUILD_TESTS OFF CACHE BOOL "Disable building zlib tests" FORCE)
-set(SKIP_INSTALL_ALL ON CACHE BOOL "Skip zlib install targets" FORCE)
-
-FetchContent_Declare(
-    zlib
-    GIT_REPOSITORY https://github.com/madler/zlib.git
-    GIT_TAG v1.3.1
-    OVERRIDE_FIND_PACKAGE
-)
-FetchContent_MakeAvailable(zlib)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml2 zlibstatic yaml-cpp N64Graphics BinaryTools)
+target_link_libraries(${PROJECT_NAME} PRIVATE tinyxml2 ZLIB::ZLIB yaml-cpp N64Graphics BinaryTools)
 
 if(BUILD_UI)
     target_link_libraries(${PROJECT_NAME} PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,libultraship>")
