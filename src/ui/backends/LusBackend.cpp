@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <numbers>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -576,7 +577,7 @@ class LusBackend final : public BaseBackend {
                 v = 0.0f;
             }
         }
-        const float cot = 1.0f / std::tan(fovyDeg * (float)M_PI / 360.0f);
+        const float cot = 1.0f / std::tan(fovyDeg * std::numbers::pi_v<float> / 360.0f);
         m.mf[0][0] = cot / aspect;
         m.mf[1][1] = cot;
         m.mf[2][2] = (n + f) / (n - f);

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <map>
+#include <numbers>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -118,13 +119,13 @@ void WalkLimb(const SkeletonModel& model, uint32_t addr, const Mat4 parent, cons
             // jointTable[limbIndex] with limbIndex = array position + 1.
             const size_t idx = (size_t)limb.mIndex + 1;
             const Vec3f r = idx < pose.jointTable->size() ? (*pose.jointTable)[idx] : Vec3f(0, 0, 0);
-            rx = r.x * (float)M_PI / 180.0f;
-            ry = r.y * (float)M_PI / 180.0f;
-            rz = r.z * (float)M_PI / 180.0f;
+            rx = r.x * std::numbers::pi_v<float> / 180.0f;
+            ry = r.y * std::numbers::pi_v<float> / 180.0f;
+            rz = r.z * std::numbers::pi_v<float> / 180.0f;
         } else {
-            rx = limb.mRot.x * (float)M_PI / 32768.0f;
-            ry = limb.mRot.y * (float)M_PI / 32768.0f;
-            rz = limb.mRot.z * (float)M_PI / 32768.0f;
+            rx = limb.mRot.x * std::numbers::pi_v<float> / 32768.0f;
+            ry = limb.mRot.y * std::numbers::pi_v<float> / 32768.0f;
+            rz = limb.mRot.z * std::numbers::pi_v<float> / 32768.0f;
         }
         // The root limb can take an animated translation from jointTable[0].
         Vec3f trans = limb.mTrans;
@@ -532,9 +533,9 @@ namespace {
 // Appends a rotated axis-aligned box (12 tris) centered at c with half-extents h.
 void EmitBox(std::vector<UI::PreviewVertex>& out, const float c[3], const float h[3], const float rotDeg[3], float r,
              float g, float b) {
-    const float rx = rotDeg[0] * (float)M_PI / 180.0f;
-    const float ry = rotDeg[1] * (float)M_PI / 180.0f;
-    const float rz = rotDeg[2] * (float)M_PI / 180.0f;
+    const float rx = rotDeg[0] * std::numbers::pi_v<float> / 180.0f;
+    const float ry = rotDeg[1] * std::numbers::pi_v<float> / 180.0f;
+    const float rz = rotDeg[2] * std::numbers::pi_v<float> / 180.0f;
     const float cx = std::cos(rx), sx = std::sin(rx), cy = std::cos(ry), sy = std::sin(ry), cz = std::cos(rz),
                 sz = std::sin(rz);
     const auto xform = [&](float x, float y, float z, float out3[3]) {

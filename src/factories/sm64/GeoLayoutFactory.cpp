@@ -723,6 +723,7 @@ std::optional<std::shared_ptr<IParsedData>> SM64::GeoLayoutFactory::parse(std::v
 #include <climits>
 #include <cmath>
 #include <cstring>
+#include <numbers>
 
 #include "AnimationFactory.h"
 #include "ui/BaseBackend.h"
@@ -756,7 +757,7 @@ Mat4 Mat4Mul(const Mat4& a, const Mat4& b) {
 // SM64's mtxf_rotate_zxy_and_translate; rotation given in degrees (the geo
 // format stores degrees, converted to binary angles at runtime).
 Mat4 Mat4RotZXYTranslate(const Vec3s& t, const Vec3s& rotDeg) {
-    const float d2r = (float)M_PI / 180.0f;
+    const float d2r = std::numbers::pi_v<float> / 180.0f;
     const float sx = std::sin(rotDeg.x * d2r), cx = std::cos(rotDeg.x * d2r);
     const float sy = std::sin(rotDeg.y * d2r), cy = std::cos(rotDeg.y * d2r);
     const float sz = std::sin(rotDeg.z * d2r), cz = std::cos(rotDeg.z * d2r);
@@ -786,7 +787,7 @@ Mat4 Mat4Scale(float s) {
 // SM64's mtxf_rotate_xyz_and_translate (used by animated parts); rotation in
 // s16 binary angles, translation in float units.
 Mat4 Mat4RotXYZTranslate(const float t[3], const int16_t rotBin[3]) {
-    const float b2r = (float)M_PI / 32768.0f;
+    const float b2r = std::numbers::pi_v<float> / 32768.0f;
     const float sx = std::sin(rotBin[0] * b2r), cx = std::cos(rotBin[0] * b2r);
     const float sy = std::sin(rotBin[1] * b2r), cy = std::cos(rotBin[1] * b2r);
     const float sz = std::sin(rotBin[2] * b2r), cz = std::cos(rotBin[2] * b2r);

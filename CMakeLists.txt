@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD 11)
 
+# Keep the Windows SDK from defining macros over the C++ standard algorithms.
+if(WIN32)
+    add_compile_definitions(NOMINMAX)
+endif()
+
 # The UI's vcpkg triplet and every consumer must use the same MSVC CRT.
 # Set this before any FetchContent target is created.
 if(MSVC)
@@ -242,7 +247,7 @@ else()
             $<IF:$<BOOL:${ENABLE_ASAN}>,/Zi,/ZI>;
         >
         $<$<CONFIG:Release>:
-            /O3;
+            /O2;
             /Gy;
             /W3;
         >

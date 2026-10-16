@@ -342,7 +342,9 @@
 
 #define G_MWO_NUMLIGHT 0x00
 
-#define gsImmp21(c, p0, p1, dat) { _SHIFTL((c), 24, 8) | _SHIFTL((p0), 8, 16) | _SHIFTL((p1), 0, 8), (uintptr_t)(dat) }
+// These commands encode 32-bit N64 words, including segmented addresses,
+// rather than host pointers.
+#define gsImmp21(c, p0, p1, dat) { _SHIFTL((c), 24, 8) | _SHIFTL((p0), 8, 16) | _SHIFTL((p1), 0, 8), static_cast<uint32_t>(dat) }
 #define gsMoveWd(index, offset, data) gsImmp21(G_MOVEWORD, offset, index, data)
 #define gsSPNumLights(n) gsMoveWd(G_MW_NUMLIGHT, G_MWO_NUMLIGHT, NUML(n))
 
@@ -360,7 +362,7 @@
 
 #define gsDPSetTileSize(t, uls, ult, lrs, lrt) gsDPLoadTileGeneric(G_SETTILESIZE, t, uls, ult, lrs, lrt)
 
-#define gsDma1p(c, s, l, p) { (_SHIFTL((c), 24, 8) | _SHIFTL((p), 16, 8) | _SHIFTL((l), 0, 16)), (uintptr_t)(s) }
+#define gsDma1p(c, s, l, p) { (_SHIFTL((c), 24, 8) | _SHIFTL((p), 16, 8) | _SHIFTL((l), 0, 16)), static_cast<uint32_t>(s) }
 #define gsSPVertex(v, n, v0) gsDma1p(G_VTX, (v), ((n) << 10) | (0x10 * (n) - 1), (v0) * 2)
 
 #define __gsSP1Triangle_w1(v0, v1, v2) (_SHIFTL((v0) * 2, 16, 8) | _SHIFTL((v1) * 2, 8, 8) | _SHIFTL((v2) * 2, 0, 8))
@@ -377,7 +379,7 @@
 #define gsSPDisplayList(dl) gsDma1p(G_DL, dl, 0, G_DL_PUSH)
 
 #define gsSetImage(cmd, fmt, siz, width, i) \
-    { _SHIFTL(cmd, 24, 8) | _SHIFTL(fmt, 21, 3) | _SHIFTL(siz, 19, 2) | _SHIFTL((width) - 1, 0, 12), (uintptr_t)(i) }
+    { _SHIFTL(cmd, 24, 8) | _SHIFTL(fmt, 21, 3) | _SHIFTL(siz, 19, 2) | _SHIFTL((width) - 1, 0, 12), static_cast<uint32_t>(i) }
 
 #define gsDPSetTextureImage(f, s, w, i) gsSetImage(G_SETTIMG, f, s, w, i)
 
@@ -612,7 +614,7 @@ std::optional<std::shared_ptr<IParsedData>> MK64::PackedDListFactory::parse(std:
             if (i + 2 > decoded.size()) {
                 goto done;
             }
-            uintptr_t vtxOff = RD16(decoded, i);
+            uint32_t vtxOff = RD16(decoded, i);
             i += 2;
             vtxOff *= 0x10; // bytes
 
