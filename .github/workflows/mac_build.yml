@@ -24,9 +24,9 @@ jobs:
       - name: Install dependencies
         run: |
           # Base tools plus the libultraship/Fast3D deps the interactive viewer
-          # (BUILD_UI) needs: SDL3, GLEW, libzip and nlohmann-json. The mac
+          # (BUILD_UI) needs: SDL2, GLEW, libzip and nlohmann-json. The mac
           # backend is Metal (metal-cpp is fetched), so no Vulkan is required.
-          brew install cmake ninja xcodes sdl3 glew libzip nlohmann-json
+          brew install cmake ninja xcodes sdl2 glew libzip nlohmann-json
       - name: Download llvm
         if: ${{ matrix.toolchain == 'macos-clang-llvm' }}
         run: |

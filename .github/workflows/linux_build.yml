@@ -25,11 +25,9 @@ jobs:
         run: |
           sudo apt-get update
           # Base build tools plus the libultraship/Fast3D deps the interactive
-          # viewer (BUILD_UI) needs: OpenGL, libzip, nlohmann-json and the
-          # X11/Wayland development headers required for SDL3's desktop backend.
-          # SDL3 itself is fetched at the pinned source revision by CMake.
+          # viewer (BUILD_UI) needs: SDL2, OpenGL, libzip and nlohmann-json.
           # (tinyxml2 and spdlog are vendored via FetchContent.)
-          sudo apt-get install -y cmake ninja-build libbz2-dev \
+          sudo apt-get install -y cmake ninja-build libbz2-dev libsdl2-dev \
             libgl1-mesa-dev libopengl-dev libglew-dev libpng-dev \
             libzip-dev zipcmp zipmerge ziptool nlohmann-json3-dev \
             libasound2-dev libpulse-dev libudev-dev \
