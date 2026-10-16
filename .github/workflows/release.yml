@@ -18,7 +18,9 @@ jobs:
         sudo apt-get update
         # Includes the libultraship/Fast3D deps for the interactive viewer.
         sudo apt-get install -y cmake ninja-build libbz2-dev \
-          libgl1-mesa-dev libopengl-dev libzip-dev nlohmann-json3-dev
+          libgl1-mesa-dev libopengl-dev libzip-dev nlohmann-json3-dev \
+          libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+          libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
 
     - name: Configure and Build Linux Binaries
       run: |
